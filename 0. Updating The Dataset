@@ -1,0 +1,36 @@
+#Importando el paquete necesario
+import yfinance 
+
+#Ignorar mensajes de advertencia
+import warnings 
+warnings.filterwarnings("ignore")
+
+# Usando el método .download() para obtener datos
+
+raw_data = yfinance.download (tickers = "^GSPC ^FTSE ^N225 ^GDAXI", start = "1994-01-07", end = "2023-09-22", interval = "1d", group_by = 'ticker', auto_adjust = True, threads = True)
+
+# tickers -> Series temporales (en este caso, S&P, FTSE, NIKKEI y DAX)
+# start -> La fecha de inicio del data set
+# end -> La fecha de finalización del data set
+# interval -> La distancia en el tiempo entre dos observaciones
+# group_by -> La forma en que se agrupan los datos extraídos
+# auto_adjust -> Ajusta automáticamente los precios de cierre de cada período 
+# treads - > Por si se deben utilizar subprocesos para descargas masivas.
+
+
+# Crear una copia de seguridad en caso de que  se elimine/altere elementos de los datos por error
+df_comp = raw_data.copy()
+# Agregar nuevas columnas al data set
+df_comp['spx'] = df_comp['^GSPC'].Close
+df_comp['dax'] = df_comp['^GDAXI'].Close
+df_comp['ftse'] = df_comp['^FTSE'].Close
+df_comp['nikkei'] = df_comp['^N225'].Close
+df_comp = df_comp.iloc[1:] # Elimina los primeros elementos, ya que siempre comienza 1 período antes del primero, por las diferencias de zona horaria en los precios de cierre
+del df_comp['^N225']  # Eliminando los tickers originales del data set
+del df_comp['^GSPC']
+del df_comp['^GDAXI']
+del df_comp['^FTSE']
+df_comp=df_comp.asfreq('b') # Establece la frecuencia de los datos
+df_comp=df_comp.fillna(method='ffill') # Completa los valores faltantes
+print (df_comp.head()) # Muestra los primeros 5 elementos para asegurarse de que los datos se hayan extraído correctamente
+print (df_comp.tail()) # Asegura que el último día que incluye en la serie sea correcto
